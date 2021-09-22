@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class StoryGraphPluginEditor : ModuleRules
 {
-	public StoryGraphPluginEditor(ReadOnlyTargetRules ROTargetRules) : base(ROTargetRules)
+    public StoryGraphPluginEditor(ReadOnlyTargetRules ROTargetRules) : base(ROTargetRules)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs; // Enabel IWYU
 
@@ -27,12 +27,9 @@ public class StoryGraphPluginEditor : ModuleRules
             "Kismet",
             "XmlParser",
             "DesktopPlatform",
+            "ToolMenus",
         });
 
-
-
         PrivateDependencyModuleNames.AddRange(new string[] { "StoryGraphPluginRuntime" }); //Основной модуль
-		
-		
-	}
+    }
 }

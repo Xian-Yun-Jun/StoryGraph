@@ -6,7 +6,7 @@
 #include "DrawElements.h"
 
 FConnectionDrawingPolicy_StoryGraph::FConnectionDrawingPolicy_StoryGraph(int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor, const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements)
-: FConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, ZoomFactor, InClippingRect, InDrawElements)
+	: FConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, ZoomFactor, InClippingRect, InDrawElements)
 {
 }
 
@@ -20,11 +20,9 @@ void FConnectionDrawingPolicy_StoryGraph::DetermineWiringStyle(UEdGraphPin* Outp
 	const bool bDeemphasizeUnhoveredPins = HoveredPins.Num() > 0;
 	if (bDeemphasizeUnhoveredPins)
 	{
-		ApplyHoverDeemphasis(OutputPin, InputPin,  Params.WireThickness, Params.WireColor);
+		ApplyHoverDeemphasis(OutputPin, InputPin, Params.WireThickness, Params.WireColor);
 	}
 }
-
-
 
 void FConnectionDrawingPolicy_StoryGraph::DrawPreviewConnector(const FGeometry& PinGeometry, const FVector2D& StartPoint, const FVector2D& EndPoint, UEdGraphPin* Pin)
 {
@@ -44,9 +42,7 @@ void FConnectionDrawingPolicy_StoryGraph::DrawPreviewConnector(const FGeometry& 
 	{
 		DrawSplineWithArrow(FGeometryHelper::FindClosestPointOnGeom(PinGeometry, StartPoint), StartPoint, Params);
 	}
-
 }
-
 
 void FConnectionDrawingPolicy_StoryGraph::DrawSplineWithArrow(const FVector2D& StartAnchorPoint, const FVector2D& EndAnchorPoint, const FConnectionParams& Params)
 {
@@ -90,7 +86,7 @@ void FConnectionDrawingPolicy_StoryGraph::Internal_DrawLineWithArrow(const FVect
 		TOptional<FVector2D>(),
 		FSlateDrawElement::RelativeToElement,
 		Params.WireColor
-		);
+	);
 }
 
 void FConnectionDrawingPolicy_StoryGraph::DrawSplineWithArrow(const FGeometry& StartGeom, const FGeometry& EndGeom, const FConnectionParams& Params)
@@ -124,11 +120,10 @@ void FConnectionDrawingPolicy_StoryGraph::DrawConnection(int32 LayerId, const FV
 		LayerId,
 		P0, P0Tangent,
 		P1, P1Tangent,
-		ClippingRect,
 		Params.WireThickness,
 		ESlateDrawEffect::None,
 		Params.WireColor
-		);
+	);
 
 	if (Params.bDrawBubbles)
 	{
@@ -158,12 +153,10 @@ void FConnectionDrawingPolicy_StoryGraph::DrawConnection(int32 LayerId, const FV
 					LayerId,
 					FPaintGeometry(BubblePos, BubbleSize, ZoomFactor),
 					BubbleImage,
-					ClippingRect,
 					ESlateDrawEffect::None,
 					Params.WireColor
-					);
+				);
 			}
 		}
 	}
 }
-

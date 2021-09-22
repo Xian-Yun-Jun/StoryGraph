@@ -14,9 +14,8 @@
 #include "Graph_StoryGraph.h"
 #include "AssetEditor_StoryGraph.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
-
-
-
+#include "ToolMenus/Public/ToolMenu.h"
+#include "ToolMenus/Public/ToolMenuSection.h"
 
 UEdGraphNode* FCustomSchemaAction_NewNode::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode/* = true*/)
 {
@@ -43,7 +42,7 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 		ParentGraph->GetNodesOfClass<UProxyNodeBase>(FindNods);
 		for (int i = 0; i < FindNods.Num(); i++)
 		{
-			if (FindNods[i]->CustomNode->pGraphObject == OwnedObject &&FindNods[i]->CustomNode->NodeType == ENodeType::QuestStart)
+			if (FindNods[i]->CustomNode->pGraphObject == OwnedObject && FindNods[i]->CustomNode->NodeType == ENodeType::QuestStart)
 			{
 				pStoryGraph->pAssetEditor->FocusWindow();
 				pStoryGraph->pAssetEditor->JumpToNode(FindNods[i]);
@@ -51,11 +50,11 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 			}
 		}
 	}
-	
+
 	UCustomNodeBase* ActorNode = NewObject<UCustomNodeBase>(CustomNodeParent, UCustomNodeBase::GetClassFromNodeType(NodeType));
 	ActorNode->SetFlags(RF_Transactional);
 	ActorNode->pStoryGraph = ((UEdGraph_StoryGraph*)ParentGraph)->GetStoryGraph();
-	
+
 	if (UStoryGraph* StoryGraph = Cast<UStoryGraph>(CustomNodeParent))
 	{
 		StoryGraph->GarphNods.Add(ActorNode);
@@ -69,12 +68,11 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 		PlaceTrigger->GarphNods.Add(ActorNode);
 	}
 
-	UProxyNodeBase* ProxyNode = NewObject<UProxyNodeBase>((UObject *)ParentGraph, UProxyNodeBase::StaticClass());
+	UProxyNodeBase* ProxyNode = NewObject<UProxyNodeBase>((UObject*)ParentGraph, UProxyNodeBase::StaticClass());
 	ProxyNode->CustomNode = ActorNode;
 	ActorNode->InitNode(OwnedObject);
 	ProxyNode->SetFlags(RF_Transactional);
 	ParentGraph->AddNode(ProxyNode, true, bSelectNewNode);
-	
 
 	ProxyNode->CreateNewGuid();
 	ProxyNode->PostPlacedNewNode();
@@ -83,11 +81,9 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 	ProxyNode->NodePosX = Location.X;
 	ProxyNode->NodePosY = Location.Y;
 	ProxyNode->SnapToGrid(16);
-	
 
 	if (FromPin)
 	{
-		
 		for (int i = 0; i < ProxyNode->Pins.Num(); i++)
 		{
 			if (FromPin->PinType.PinCategory == ProxyNode->Pins[i]->PinType.PinCategory)
@@ -99,7 +95,7 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 			}
 		}
 	}
-	
+
 	if (ProxyNode->CustomNode->NodeType == ENodeType::DialogNode || ProxyNode->CustomNode->NodeType == ENodeType::Message)
 	{
 		ProxyNode->CustomNode->CreatePinDelegate.BindUObject(ProxyNode, &UProxyNodeBase::HandleCreatePin);
@@ -113,28 +109,21 @@ UEdGraphNode* FCustomSchemaAction_NewNode::SpawnNode(ENodeType NodeType, UStoryG
 }
 //UEdGraphSchema_Base...........................................................................................
 
-
-
 void UEdGraphSchema_Base::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
-
 	const UEdGraphPin* FromPin = ContextMenuBuilder.FromPin;
 	const UEdGraph_StoryGraph* Graph = (UEdGraph_StoryGraph*)ContextMenuBuilder.CurrentGraph;
 	const UStoryGraph* StoryGraph = Graph->GetStoryGraph();
 	TArray<TSharedPtr<FEdGraphSchemaAction> > Actions;
-	
-	
+
 	FString NodeCategory;
 
-	
 	for (int i = 0; i < StoryGraph->GarphObjects.Num(); i++)
 	{
-		
 		for (int j = 0; j < StoryGraph->GarphObjects[i]->DependetNodes.Num(); j++)
 		{
 			if (UCustomNodeBase::GetIncertNodeType(StoryGraph->GarphObjects[i]->DependetNodes[j]) == SuitableDependetNodesType)
 			{
-				
 				NodeCategory = UStoryGraphObject::GetObjectTypeEnumAsString(StoryGraph->GarphObjects[i]->ObjectType) + "|" + StoryGraph->GarphObjects[i]->ObjName.ToString();
 				AddAction(StoryGraph->GarphObjects[i], StoryGraph->GarphObjects[i]->DependetNodes[j], NodeCategory, Actions, ContextMenuBuilder.OwnerOfTemporaries, 0);
 			}
@@ -149,19 +138,15 @@ void UEdGraphSchema_Base::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 		{
 			NodeCategory = "Nodes";
 			AddAction(NULL, (ENodeType)i, NodeCategory, Actions, ContextMenuBuilder.OwnerOfTemporaries, 1);
-			
 		}
 		i++;
 	}
 
-	
 	for (TSharedPtr<FEdGraphSchemaAction> Action : Actions)
 	{
 		ContextMenuBuilder.AddAction(Action);
 	}
 }
-
-
 
 const FPinConnectionResponse UEdGraphSchema_Base::CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const
 {
@@ -205,36 +190,33 @@ bool UEdGraphSchema_Base::ShouldHidePinDefaultValue(UEdGraphPin* Pin) const
 	return true;
 }
 
-void UEdGraphSchema_Base::GetContextMenuActions(const UEdGraph* CurrentGraph, const UEdGraphNode* InGraphNode, const UEdGraphPin* InGraphPin, FMenuBuilder* MenuBuilder, bool bIsDebugging) const
+void UEdGraphSchema_Base::GetContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
-	
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().Delete);
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().Cut);
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().Copy);
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().Paste);
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().SelectAll);
-	MenuBuilder->AddMenuEntry(FGenericCommands::Get().Duplicate);
-	if (InGraphPin)
+	FToolMenuSection& Section = Menu->AddSection("StoryGraphNodeActions", NSLOCTEXT("UEdGraphSchema_Base", "StoryGraphActionsMenuHeader", "Pin Actions"));
+	Section.AddMenuEntry(FGenericCommands::Get().Delete);
+	Section.AddMenuEntry(FGenericCommands::Get().Cut);
+	Section.AddMenuEntry(FGenericCommands::Get().Copy);
+	Section.AddMenuEntry(FGenericCommands::Get().Paste);
+	Section.AddMenuEntry(FGenericCommands::Get().SelectAll);
+	Section.AddMenuEntry(FGenericCommands::Get().Duplicate);
+	if (Context->Pin)
 	{
-		MenuBuilder->AddMenuEntry(FGraphEditorCommands::Get().BreakPinLinks);
+		Section.AddMenuEntry(FGraphEditorCommands::Get().BreakPinLinks);
 	}
 	else
 	{
-		MenuBuilder->AddMenuEntry(FGraphEditorCommands::Get().BreakNodeLinks);
+		Section.AddMenuEntry(FGraphEditorCommands::Get().BreakNodeLinks);
 	}
 
-	Super::GetContextMenuActions(CurrentGraph, InGraphNode, InGraphPin, MenuBuilder, bIsDebugging);
+	Super::GetContextMenuActions(Menu, Context);
 }
-
 
 void UEdGraphSchema_Base::AddAction(UStoryGraphObject* OwnedObject, ENodeType NodeType, FString Category, TArray<TSharedPtr<FEdGraphSchemaAction> >& OutActions, UEdGraph* OwnerOfTemporaries, int InGruping)
 {
-	
-	
 	FText MenuDesc = FText::FromString(UCustomNodeBase::GetActionNameFromNodeType(NodeType));
 	FText ToolTip = FText::FromString(UCustomNodeBase::GetToolTipFromNodeType(NodeType));
 	TSharedPtr<FCustomSchemaAction_NewNode> NewActorNodeAction = TSharedPtr<FCustomSchemaAction_NewNode>(new FCustomSchemaAction_NewNode(FText::FromString(Category), MenuDesc, ToolTip, InGruping));
-	
+
 	NewActorNodeAction->NodeType = NodeType;
 	NewActorNodeAction->OwnedObject = OwnedObject;
 	OutActions.Add(NewActorNodeAction);
@@ -272,7 +254,6 @@ const FPinConnectionResponse UEdGraphSchema_StoryGraph::CanCreateConnection(cons
 
 FConnectionDrawingPolicy* UEdGraphSchema_StoryGraph::CreateConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor, const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements, class UEdGraph* InGraphObj) const
 {
-
 	return new FConnectionDrawingPolicy_StoryGraph(InBackLayerID, InFrontLayerID, InZoomFactor, InClippingRect, InDrawElements);
 }
 //UEdGraphSchema_DialogGraph..............................................................................................................
@@ -289,7 +270,6 @@ FConnectionDrawingPolicy* UEdGraphSchema_DialogGraph::CreateConnectionDrawingPol
 
 const FPinConnectionResponse UEdGraphSchema_DialogGraph::CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const
 {
-
 	FPinConnectionResponse PinConnectionResponse = Super::CanCreateConnection(A, B);
 
 	if (PinConnectionResponse.Response == CONNECT_RESPONSE_DISALLOW)
@@ -298,7 +278,6 @@ const FPinConnectionResponse UEdGraphSchema_DialogGraph::CanCreateConnection(con
 	}
 	UProxyNodeBase* ABase = Cast<UProxyNodeBase>(A->GetOwningNode());
 	UProxyNodeBase* BBase = Cast<UProxyNodeBase>(B->GetOwningNode());
-
 
 	if (A->LinkedTo.Num() > 0 || B->LinkedTo.Num() > 0)
 	{
@@ -315,4 +294,3 @@ UEdGraphSchema_MessageGraph::UEdGraphSchema_MessageGraph()
 	SuitableDependetNodesType = EIncertNodeType::MessageGraphDependent;
 	SuitableStandaloneNodesType = EIncertNodeType::MessageGraphStandalone;
 }
-

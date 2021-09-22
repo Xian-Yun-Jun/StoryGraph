@@ -2,22 +2,17 @@
 
 #pragma once
 
-#include "EngineMinimal.h"
-#include "ModuleManager.h"
+#include "CoreMinimal.h"
+#include "Modules/ModuleManager.h"
 //#include "StoryGraphPluginRuntimeClasses.h"
 //#include "EditorStyleSet.h"
 //#include "EdGraph/EdGraphNodeUtils.h"
 //#include "ScopedTransaction.h"
 //#include "EdGraph/EdGraphPin.h"
 
-
-
-
-class FStoryGraphEditorModule : public IModuleInterface
+class STORYGRAPHPLUGINEDITOR_API FStoryGraphEditorModule : public IModuleInterface
 {
-
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-	
 };

@@ -1,29 +1,27 @@
 // Copyright 2016 Dmitriy Pavlov
 
-
 #include "SaveGameInstance.h"
 #include "HUD_StoryGraph.h"
 #include "LogCategoryRutime.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
 #include "StoryGraphWiget.h"
+#include "ArchiveSaveCompressedProxy.h"
+#include "ArchiveLoadCompressedProxy.h"
 
 void USaveGameInstance::SaveGame()
 {
-	
 	if (GetWorld())
 	{
-		
 		TArray<FObjectRecord> ObjectrRecordStoreSave;
 
 		APawn* Pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 		ObjectrRecordStoreSave.Add(FObjectRecord(Pawn));
-		
+
 		for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 		{
 			if (ISaveObject_StoryGraph* SaveObject = Cast<ISaveObject_StoryGraph>(*ActorItr))
 			{
-
 				ObjectrRecordStoreSave.Add(FObjectRecord(*ActorItr));
 			}
 		}
@@ -56,7 +54,6 @@ void USaveGameInstance::SaveGame()
 			}
 		}
 	}
-
 }
 
 void USaveGameInstance::LoadGame()
@@ -73,38 +70,29 @@ void USaveGameInstance::LoadGame()
 		FSaveAchiveHeader  AchiveHeader;
 		MemoryReader << AchiveHeader;
 
-
-
 		UGameplayStatics::OpenLevel(GetWorld(), FName(*AchiveHeader.LevelName), true);
 
 		//Read object records
-		
+
 		for (int i = 0; i < AchiveHeader.ObjectrRecordNum; i++)
 		{
 			FObjectRecord ObjectrRecord;
 			MemoryReader << ObjectrRecord;
 			ObjectrRecordStore.Add(ObjectrRecord);
 		}
-
-		
 	}
-
 }
 
 void USaveGameInstance::LoadGameContinue()
 {
-
 	if (IsLevelLoded && GetWorld() && ObjectrRecordStore.Num() > 0)
 	{
-
 		int i = 0;
 
 		for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 		{
-
 			if (ISaveObject_StoryGraph* SaveObject = Cast<ISaveObject_StoryGraph>(*ActorItr))
 			{
-				
 				if (ObjectrRecordStore.Num() > i)
 				{
 					bool ObjectFind = false;
@@ -124,7 +112,6 @@ void USaveGameInstance::LoadGameContinue()
 								ObjectFind = true;
 							}
 						}
-						
 					}
 
 					if (ObjectFind)
@@ -141,17 +128,11 @@ void USaveGameInstance::LoadGameContinue()
 					UE_LOG(LogCategoryStoryGraphPluginRuntime, Warning, TEXT("Object records in save file less then objects on map"));
 					return;
 				}
-
 			}
 		}
 
-		
 		// Load data from object records to objects
-
-		
 	}
-	
-	
 }
 
 void USaveGameInstance::LoadCharacter()
@@ -160,7 +141,6 @@ void USaveGameInstance::LoadCharacter()
 	{
 		APawn* Pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 		ObjectrRecordStore[0].Load(Pawn);
-
 
 		IsLevelLoded = false;
 		ObjectrRecordStore.Empty();
@@ -175,10 +155,8 @@ void USaveGameInstance::LoadCharacter()
 	}
 }
 
-
 bool USaveGameInstance::SaveToFileCompresed(FString SavePath, TArray<uint8>& Data)
 {
-
 	TArray<uint8> CompressedData;
 	FArchiveSaveCompressedProxy Compressor(CompressedData, ECompressionFlags::COMPRESS_ZLIB);
 	// Compresed
@@ -193,7 +171,6 @@ bool USaveGameInstance::SaveToFileCompresed(FString SavePath, TArray<uint8>& Dat
 		Compressor.FlushCache();
 		CompressedData.Empty();
 		return false;
-
 	}
 
 	Compressor.FlushCache();
@@ -212,8 +189,8 @@ bool USaveGameInstance::LoadToFileCompresed(FString SavePath, TArray<uint8>& Dat
 		CompressedData.Empty();
 		return false;
 	}
-	// Decompress File 
-	FArchiveLoadCompressedProxy Decompressor(CompressedData, ECompressionFlags::COMPRESS_ZLIB);
+	// Decompress File
+	FArchiveLoadCompressedProxy Decompressor(CompressedData, NAME_Zlib);
 
 	//Decompression Error?
 	if (Decompressor.GetError())
@@ -223,7 +200,6 @@ bool USaveGameInstance::LoadToFileCompresed(FString SavePath, TArray<uint8>& Dat
 		Decompressor.FlushCache();
 		CompressedData.Empty();
 		return false;
-
 	}
 
 	//Decompress
@@ -237,12 +213,10 @@ bool USaveGameInstance::LoadToFileCompresed(FString SavePath, TArray<uint8>& Dat
 
 bool USaveGameInstance::SaveToFile(FString SavePath, TArray<uint8>& Data)
 {
-
 	if (!FFileHelper::SaveArrayToFile(Data, *SavePath))
 	{
 		UE_LOG(LogCategoryStoryGraphPluginRuntime, Error, TEXT("Cann't save file"));
 		return false;
-
 	}
 
 	return true;
@@ -250,8 +224,6 @@ bool USaveGameInstance::SaveToFile(FString SavePath, TArray<uint8>& Data)
 
 bool USaveGameInstance::LoadToFile(FString SavePath, TArray<uint8>& Data)
 {
-
-
 	if (!FFileHelper::LoadFileToArray(Data, *SavePath))
 	{
 		UE_LOG(LogCategoryStoryGraphPluginRuntime, Error, TEXT("Cann't open file"));
